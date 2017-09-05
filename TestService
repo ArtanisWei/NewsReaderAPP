@@ -1,0 +1,61 @@
+package com.example.victor.todaynews;
+
+import android.app.Service;
+import android.os.IBinder;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.widget.*;
+import android.*;
+import android.view.*;
+
+import android.content.*;
+import android.content.DialogInterface.*;
+
+public class TestActivity extends AppCompatActivity {
+
+    Button start,stop,contents;
+    ScrapyService.MyBinder binder;
+    ServiceConnection conn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            System.out.println("---connected---");
+            binder = (ScrapyService.MyBinder) iBinder;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            System.out.println("---disconnected---");
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_test);
+
+        start = (Button) findViewById(R.id.start);
+        stop = (Button) findViewById(R.id.stop);
+        contents = (Button) findViewById(R.id.contents);
+
+        final Intent intent = new Intent(this,ScrapyService.class);
+        start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bindService(intent,conn, Service.BIND_AUTO_CREATE);
+            }
+        });
+        contents.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(TestActivity.this , "The Content is: " + binder.getcontent(),Toast.LENGTH_SHORT).show();
+            }
+        });
+        stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                unbindService(conn);
+            }
+        });
+
+    }
+}
