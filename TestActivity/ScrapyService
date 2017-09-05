@@ -1,0 +1,49 @@
+package com.example.victor.todaynews;
+import android.app.*;
+import android.os.*;
+import android.*;
+import android.content.*;
+import java.util.*;
+/**
+ * Created by victor on 05/09/2017.
+ */
+
+public class ScrapyService extends Service{
+
+    private String content;
+    private Vector<String> titles;
+    private MyBinder binder = new MyBinder();
+    class MyBinder extends Binder{
+        public String getcontent(){
+            return content;
+        }
+        public Vector<String> gettitles(){
+            return titles;
+        }
+    }
+    public  IBinder onBind(Intent it){
+        System.out.println("Service is Binded");
+        return binder;
+    }
+
+    @Override
+    public void onCreate(){
+        super.onCreate();
+        content = "This is a news";
+        //titles.clear();
+        System.out.println("Service is created");
+
+    }
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId){
+        System.out.println("Service is started");
+        return START_STICKY;
+    }
+    @Override
+    public void  onDestroy(){
+        super.onDestroy();
+        System.out.println("Service is destroyed");
+    }
+
+
+}
