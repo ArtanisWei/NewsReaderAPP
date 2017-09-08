@@ -3,10 +3,11 @@ package com.example.victor.todaynews;
 /**
  * Created by victor on 07/09/2017.
  */
+import java.io.Serializable;
 import java.security.KeyException;
 import java.util.*;
 
-public interface Interaction {
+public interface Interaction extends Serializable{
     final HashMap<String,Integer> from_String_to_Integer = new HashMap<String, Integer>(){
         {
             put("科技",1);
@@ -23,41 +24,54 @@ public interface Interaction {
             put("娱乐",12);
         }
     };
+    final HashMap<Integer,String> from_Integer_to_String = new HashMap<Integer,String>(){
+        {
+            put(1,"科技");
+            put(2,"教育");
+            put(3,"军事");
+            put(4,"国内");
+            put(5,"社会");
+            put(6,"文化");
+            put(7,"汽车");
+            put(8,"国际");
+            put(9,"体育");
+            put(10,"财经");
+            put(11,"健康");
+            put(12,"娱乐");
+        }
+    };
     public ArrayList _get();
     public boolean _set(ArrayList para);
 }
 
 class NewsRequest implements Interaction{
     int number;//需要的新闻数量
-    boolean[] type_bitmap;//需要类型的bitmap,需要则为true,否则为false
+    int type;//传入需要的种类，如果无种类的特殊需求则传入0
 
-    NewsRequest(int _num, String[]need_type){
+    NewsRequest(){
+        number = 0;
+        type = 0;
+    }
+    NewsRequest(int _num){
         number = _num;
-        type_bitmap = new boolean[13];
-        for (int i = 0; i < type_bitmap.length; i++){
-            type_bitmap[i] = false;
-        }
-        for (int i = 0; i < need_type.length; i++){
-            try{
-                int temp = from_String_to_Integer.get(need_type[i]);
-                type_bitmap[temp] = true;
-            }catch(Exception e){
-                System.out.println("不存在" + need_type[i] + "类型");
-            }
-        }
+        type = 0;
+    }
+    NewsRequest(int _num, String _type){
+        number = _num;
+        type = from_String_to_Integer.get(_type);
     }
 
     public ArrayList _get(){
         ArrayList temp_list = new ArrayList();
         temp_list.add(number);
-        temp_list.add(type_bitmap);
+        temp_list.add(type);
         return temp_list;
     }
 
     public boolean _set(ArrayList para){
         try{
             number = (Integer)para.get(0);
-            type_bitmap = (boolean[])para.get(1);
+            type = (Integer)para.get(1);
             return true;
         }catch(Exception e){
             e.printStackTrace();
@@ -93,8 +107,8 @@ class NewsSearchRequest implements Interaction{
 }
 class NewsSearchRespond implements Interaction{
     int number;//最终找到新闻的数目
-    Vector<NewsDegest> news;//所有新闻摘要构成的向量
-    NewsSearchRespond(int _num, Vector<NewsDegest> _n){
+    Vector<NewsDigest> news;//所有新闻摘要构成的向量
+    NewsSearchRespond(int _num, Vector<NewsDigest> _n){
         number = _num;
         news = _n;
     }
@@ -107,7 +121,7 @@ class NewsSearchRespond implements Interaction{
     public boolean _set(ArrayList pa){
         try{
             number = (int)pa.get(0);
-            news = (Vector<NewsDegest>)pa.get(1);
+            news = (Vector<NewsDigest>)pa.get(1);
             return true;
         }catch(Exception e){
             e.printStackTrace();
@@ -116,10 +130,10 @@ class NewsSearchRespond implements Interaction{
     }
 }
 
-class NewsCacheRequest implements Interaction{
+class NewsFavouriteRequest implements Interaction{
     String news_id;//目标新闻id
     int operator;//操作码，1表示添加新闻上述新闻id, 2表示删除上述新闻id, 3表示返回上述新闻具体内容，4表示列出列表上述新闻id无效
-    NewsCacheRequest(String id, int _o){
+    NewsFavouriteRequest(String id, int _o){
         news_id = id;
         operator = _o;
     }
@@ -164,22 +178,28 @@ class NewsContentRequest implements Interaction{
 
 class NewsRespond implements Interaction{
     int number;//获得的新闻数目
-    Vector<NewsDegest> news;//所有新闻摘要构成的向量
+    Vector<NewsDigest> news;//所有新闻摘要构成的向量
 
-    NewsRespond(int _num, Vector<NewsDegest> n){
+    NewsRespond(){
+        number = 0;
+        news = new Vector<NewsDigest>();
+    }
+    NewsRespond(int _num, Vector<NewsDigest> n){
         number = _num;
         news = n;
     }
+
     public ArrayList _get(){
         ArrayList temp = new ArrayList();
         temp.add(number);
         temp.add(news);
         return temp;
     }
+
     public boolean _set(ArrayList temp){
         try{
             number = (int)temp.get(0);
-            news = (Vector<NewsDegest>)temp.get(1);
+            news = (Vector<NewsDigest>)temp.get(1);
             return true;
         }catch(Exception e){
             e.printStackTrace();
@@ -188,14 +208,15 @@ class NewsRespond implements Interaction{
     }
 }
 
-class NewsCacheRespond implements Interaction{
+class NewsFavourtieRespond implements Interaction{
     boolean success;//返回对缓存的这次操作是否成功
-    Vector<NewsDegest> list;//返回缓存列表（如果需要的话）
+    Vector<NewsDigest> list;//返回缓存列表（如果需要的话）
     NewsContent content;//返回指定新闻的内容
 
-    NewsCacheRespond(boolean _success){
+
+    NewsFavourtieRespond(boolean _success){
         success = _success;
-        list = new Vector<NewsDegest>();
+        list = new Vector<NewsDigest>();
         content = new NewsContent();
     }
     public ArrayList _get(){
@@ -207,7 +228,7 @@ class NewsCacheRespond implements Interaction{
     }
     public boolean _set(ArrayList temp){//弃置不用
         return true;
-    }
+    } //由于这个回应内容太过复杂，所以可以直接修改内部变量
 }
 
 class NewsContentRespond implements Interaction{
