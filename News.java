@@ -1,4 +1,7 @@
 import java.io.Serializable;
+package com.example.victor.todaynews;
+
+import java.io.Serializable;
 import java.util.*;
 /**
  * Created by victor on 07/09/2017.
@@ -22,34 +25,45 @@ public class News implements Serializable{
     }
 }
 
-class NewsDegest extends News{
+class NewsDigest extends News{
     String title;
     String intro;
-    NewsDegest(){
+    NewsDigest(){
         super();
         title = "";
         intro = "";
     }
-    NewsDegest(String _type, String _id, String _url, Date _time, String _source, String _title, String _intro){
+    NewsDigest(String _type, String _id, String _url, Date _time, String _source, String _title, String _intro){
         super(_type,_id,_url,_time,_source);
         title = _title;
         intro = _intro;
     }
-
+    @Override
+    public String toString(){
+        return title + "\n" + intro;
+    }
 }
 
 class NewsContent extends News{
     String title;
-    String[] special_words;
+    HashSet<String> special_words;
     String content;
-    String[] picture_urls;
+    Vector<String> picture_urls;
     NewsContent(){
         super();
         title = "";content = "";
-        special_words = null;
-        picture_urls = null;
+        special_words = new HashSet<String>();
+        picture_urls = new Vector<String>();
     }
-    NewsContent(String _type, String _id, String _url, Date _time, String _source, String _title, String _content, String[] _special_words, String[] _picture_urls){
+    NewsContent(NewsDigest dig, String _content, Vector<String> pic, HashSet<String> sp){
+        super(dig.type, dig.id, dig.url, dig.time, dig.source);
+        title = dig.title;
+        special_words = sp;
+        content = _content;
+        picture_urls = pic;
+    }
+
+    NewsContent(String _type, String _id, String _url, Date _time, String _source, String _title, String _content, HashSet<String> _special_words, Vector<String> _picture_urls){
         super(_type,_id,_url,_time,_source);
         title = _title;
         special_words = _special_words;
