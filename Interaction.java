@@ -45,36 +45,36 @@ public interface Interaction extends Serializable{
 }
 
 class NewsRequest implements Interaction{
-    int number;//需要的新闻数量
+    int page;//想看哪一页
     int type;//传入需要的种类，如果无种类的特殊需求则传入0
 
     NewsRequest(){
-        number = 0;
+        page = 0;
         type = 0;
     }
     NewsRequest(int _num){
-        number = _num;
+        page = _num;
         type = 0;
     }
     NewsRequest(int _num, String _type){
-        number = _num;
+        page = _num;
         type = from_String_to_Integer.get(_type);
     }
     NewsRequest(int _num, int _type){
-        number = _num;
+        page = _num;
         type = _type;
     }
 
     public ArrayList _get(){
         ArrayList temp_list = new ArrayList();
-        temp_list.add(number);
+        temp_list.add(page);
         temp_list.add(type);
         return temp_list;
     }
 
     public boolean _set(ArrayList para){
         try{
-            number = (Integer)para.get(0);
+            page = (Integer)para.get(0);
             type = (Integer)para.get(1);
             return true;
         }catch(Exception e){
@@ -98,6 +98,9 @@ class NewsSearchRequest implements Interaction{
         temp.add(keyword);
         return temp;
     }
+    public String get_keyword(){
+        return keyword;
+    }
     public boolean _set(ArrayList pa){
         try{
             keyword = (String)pa.get(0);
@@ -113,7 +116,7 @@ class NewsSearchRespond implements Interaction{
     NewsSearchRespond(){
         news = new Vector<NewsDigest>();
     }
-    NewsSearchRespond(int _num, Vector<NewsDigest> _n){
+    NewsSearchRespond(Vector<NewsDigest> _n){
         news = _n;
     }
     public ArrayList _get(){
@@ -165,6 +168,7 @@ class NewsContentRequest implements Interaction{
     NewsContentRequest(String id){
         newsid = id;
     }
+    public String get_id(){return newsid;}
     public ArrayList _get(){
         ArrayList temp = new ArrayList();
         temp.add(newsid);
@@ -246,6 +250,12 @@ class NewsContentRespond implements Interaction{
     NewsContentRespond(boolean __success, NewsContent _ans){
         _success = __success;
         answer = _ans;
+    }
+    NewsContent get_answer(){
+        return answer;
+    }
+    boolean is_success(){
+        return _success;
     }
     public ArrayList _get(){
         ArrayList temp = new ArrayList();

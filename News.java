@@ -44,19 +44,27 @@ class NewsDigest extends News{
 }
 
 class NewsContent extends News{
-    String title;
+    //String title;
     HashSet<String> special_words;
     String content;
     Vector<String> picture_urls;
+    public String _content(){
+        return content;
+    }
+    public HashSet<String> _getwords(){
+        return special_words;
+    }
+    public Vector<String> _getpicture(){
+        return picture_urls;
+    }
     NewsContent(){
         super();
-        title = "";content = "";
+        content = "";
         special_words = new HashSet<String>();
         picture_urls = new Vector<String>();
     }
     NewsContent(NewsDigest dig, String _content, Vector<String> pic, HashSet<String> sp){
         super(dig.type, dig.id, dig.url, dig.time, dig.source);
-        title = dig.title;
         special_words = sp;
         content = _content;
         picture_urls = pic;
@@ -64,7 +72,6 @@ class NewsContent extends News{
 
     NewsContent(String _type, String _id, String _url, Date _time, String _source, String _title, String _content, HashSet<String> _special_words, Vector<String> _picture_urls){
         super(_type,_id,_url,_time,_source);
-        title = _title;
         special_words = _special_words;
         picture_urls = _picture_urls;
     }

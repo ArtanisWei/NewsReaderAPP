@@ -47,6 +47,7 @@ public class NewsParser {
         try{
             String sub_raw = raw.substring(raw.indexOf("\"news_Content\""), raw.indexOf("\"news_ID\"") - 2);
             Matcher map = content_feature_regex.matcher(sub_raw);
+            map.find();
             return map.group(2);
         }catch(Exception e){
             throw new NewsParserException();
@@ -61,9 +62,6 @@ public class NewsParser {
             Matcher person = words_regex.matcher(sub_person);
             Matcher location = words_regex.matcher(sub_location);
             Matcher orgnization = words_regex.matcher(sub_orgnization);
-            person.find();
-            location.find();
-            orgnization.find();
             while(person.find()){
                 answer.add(person.group(1));
             }
@@ -82,13 +80,16 @@ public class NewsParser {
     private static Vector<String> get_pictures(String raw) throws NewsParserException{
         try{
             Vector<String> answer = new Vector<String>();
-            String sub_picture = raw.substring(raw.indexOf("\"news_Picture\""), raw.indexOf("\"news_Source\""));
+            //System.out.println(raw.indexOf("\"news_Pictures\"") + " " + raw.indexOf("\"news_Source\""));
+            String sub_picture = raw.substring(raw.indexOf("\"news_Pictures\""), raw.indexOf("\"news_Source\""));
+            //System.out.println("sub_picture is: " + sub_picture);
             String[] picture_list = sub_picture.split(" ");
-            for (int i = 0; i < picture_list.length; i++){
+            for (int i = 2; i < picture_list.length - 1; i++){
                 answer.add(picture_list[i]);
             }
             return answer;
         }catch(Exception e){
+            //System.out.println("raw: " + raw);
             throw new NewsParserException();
         }
     }
@@ -100,8 +101,9 @@ public class NewsParser {
             DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
             return format.parse(date_map.group(2));
         }catch(Exception e){
-            System.out.println("Date wrong!");
-            throw new NewsParserException();
+            System.out.println("Date wrong at " + raw);
+            return new Date();
+            //throw new NewsParserException();
         }
     }
 

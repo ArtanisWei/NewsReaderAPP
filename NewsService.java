@@ -47,6 +47,7 @@ class ReadThread extends Thread {
                 _digests = NewsParser.parse_digest(web_content);
             }
             else{
+               //System.out.println("in run function: " + web_content);
                 _content = NewsParser.parse_content(web_content);
             }
 
@@ -67,49 +68,88 @@ class ReadThread extends Thread {
         BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         String result = "";
         String line = "";
+        //in.read();
         while((line = in.readLine()) != null){
+            //System.out.println("$$$$$$$$$$$line is$$$$$$$$$$$$$" + line);
             result += line;
         }
         in.close();
-
+        //System.out.println("reasult is " + result);
 
         return result;
     }
 }
 
 public class NewsService extends Service {
-
-    private int current_page = 0;
-    private int last_type = 0;
-
-    final private int max_size = 20;
+    final private int max_size = 50;
     private NewsBind binder = new NewsBind();
-    final private String urlString = "http://166.111.68.66:2042/news/action/query/latest";
+
+    final private String LATEST_NEWS = "http://166.111.68.66:2042/news/action/query/latest";
+    final private String SEARCH_NEWS = "http://166.111.68.66:2042/news/action/query/search";
+    final private String DETAIL_NEWS = "http://166.111.68.66:2042/news/action/query/detail";
+
 
     class NewsBind extends Binder{
-        public int get_page(){return current_page;}
+       // public int get_page(){return current_page;}
 
         public NewsRespond get_news_digest(NewsRequest request){
             System.out.println("request news");
-            int num = (int)request._get().get(0);
+            int page = (int)request._get().get(0);
             int type = (int)request._get().get(1);
-            if (type == last_type) current_page++;
-            else{
-                current_page = 1;
-                last_type = type;
+
+            if (page >= max_size) {
+                System.out.println("no more news, page back to the end");
+                page = 1;
             }
-            if (num <= current_page) num = max_size;
-            String param = "pageNo=" + current_page + "&pageSize=" + num;
+
+            String param = "pageNo=" + page + "&pageSize=" + max_size;
+
             if (type != 0) param += "&category=" + type;
 
-            ReadThread webThread  = new ReadThread(urlString + "?" + param, true);
+            ReadThread webThread  = new ReadThread(LATEST_NEWS+ "?" + param, true);
             webThread.start();
             try{webThread.join();}catch(Exception e){};
-            NewsRespond respond  = new NewsRespond(webThread.get_digests().size(), webThread.get_digests());
+            Vector<NewsDigest> temp = webThread.get_digests();
+            NewsRespond respond  = new NewsRespond(temp.size(), temp);
 
-            if (respond.number < num) {System.out.println("$$$$$$$$error$$$$$$$$$ less number!");}
+            if (respond.number < max_size) {System.out.println("$$$$$$$$error$$$$$$$$$ less number!");}
             return respond;
         }
+
+        public NewsSearchRespond search_news(NewsSearchRequest request){
+            System.out.println("serarch news");
+            String keyword = (String)request.get_keyword();
+
+            String param = "keyword=" + keyword;
+
+            ReadThread webThread = new ReadThread(SEARCH_NEWS + "?" + param, true);
+            webThread.start();
+            try{webThread.join();}catch(Exception e){};
+
+            Vector<NewsDigest> temp = webThread.get_digests();
+            NewsSearchRespond respond = new NewsSearchRespond(temp);
+
+            if (temp.size() == 0) {System.out.println("can't find!");}
+            return respond;
+        }
+
+        public NewsContentRespond news_content(NewsContentRequest request){
+            System.out.println("news detail");
+            String news_id = request.get_id();
+            String param = "newsId=" + news_id;
+
+            ReadThread webThread = new ReadThread(DETAIL_NEWS + "?" + param, false);
+            webThread.start();
+            try{webThread.join();}catch(Exception e){};
+
+            NewsContent content = webThread.get_content();
+            boolean success = false;
+            if (!content.content.equals("")) success = true;
+            NewsContentRespond respond = new NewsContentRespond(true, content);
+            return respond;
+        }
+
+
     }
 
     @Override
