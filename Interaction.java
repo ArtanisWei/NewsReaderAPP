@@ -60,6 +60,10 @@ class NewsRequest implements Interaction{
         number = _num;
         type = from_String_to_Integer.get(_type);
     }
+    NewsRequest(int _num, int _type){
+        number = _num;
+        type = _type;
+    }
 
     public ArrayList _get(){
         ArrayList temp_list = new ArrayList();
@@ -82,22 +86,21 @@ class NewsRequest implements Interaction{
 }
 
 class NewsSearchRequest implements Interaction{
-    int number;//需要的数量
     String keyword;//搜索关键词
-    NewsSearchRequest(int _num, String _keyword){
+    NewsSearchRequest(){
+        keyword = "";
+    }
+    NewsSearchRequest(String _keyword){
         keyword = _keyword;
-        number = _num;
     }
     public ArrayList _get(){
         ArrayList temp = new ArrayList();
-        temp.add(number);
         temp.add(keyword);
         return temp;
     }
     public boolean _set(ArrayList pa){
         try{
-            keyword = (String)pa.get(1);
-            number = (Integer)pa.get(0);
+            keyword = (String)pa.get(0);
             return true;
         }catch(Exception e){
             e.printStackTrace();
@@ -106,22 +109,24 @@ class NewsSearchRequest implements Interaction{
     }
 }
 class NewsSearchRespond implements Interaction{
-    int number;//最终找到新闻的数目
     Vector<NewsDigest> news;//所有新闻摘要构成的向量
+    NewsSearchRespond(){
+        news = new Vector<NewsDigest>();
+    }
     NewsSearchRespond(int _num, Vector<NewsDigest> _n){
-        number = _num;
         news = _n;
     }
     public ArrayList _get(){
         ArrayList temp = new ArrayList();
-        temp.add(number);
         temp.add(news);
         return temp;
     }
+    public Vector<NewsDigest> get_news(){
+        return news;
+    }
     public boolean _set(ArrayList pa){
         try{
-            number = (int)pa.get(0);
-            news = (Vector<NewsDigest>)pa.get(1);
+            news = (Vector<NewsDigest>)pa.get(0);
             return true;
         }catch(Exception e){
             e.printStackTrace();
@@ -194,6 +199,10 @@ class NewsRespond implements Interaction{
         temp.add(number);
         temp.add(news);
         return temp;
+    }
+
+    public Vector<NewsDigest> get_news(){
+        return news;
     }
 
     public boolean _set(ArrayList temp){

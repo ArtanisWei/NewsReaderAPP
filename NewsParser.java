@@ -142,10 +142,10 @@ public class NewsParser {
             throw new NewsParserException(info);
         }
     }
-    public static NewsContent parse_content(NewsDigest dig, String info) throws NewsParserException{
+    public static NewsContent parse_content(String info) throws NewsParserException{
         String content = get_content(info);
         HashSet<String> special_words = get_special_words(info);
         Vector<String> pictures = get_pictures(info);
-        return new NewsContent(dig, content, pictures, special_words);
+        return new NewsContent(special_words, pictures, content);
     }
 }

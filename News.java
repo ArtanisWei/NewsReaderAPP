@@ -68,5 +68,11 @@ class NewsContent extends News{
         special_words = _special_words;
         picture_urls = _picture_urls;
     }
+    NewsContent(HashSet<String> special, Vector<String> picture, String _content){
+        super();
+        special_words = special;
+        picture_urls = picture;
+        content = _content;
+    }
 
 }

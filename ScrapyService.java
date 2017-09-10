@@ -20,7 +20,8 @@ public class ScrapyService extends Service{
     //private Vector<String> titles;
     private MyBinder binder = new MyBinder();
     class MyBinder extends Binder{
-        public String get_content(){
+        public String get_content(String str){
+            content = str;
             return content;
         }
         //public Vector<String> gettitles(){return titles;}

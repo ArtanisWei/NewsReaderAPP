@@ -3,6 +3,7 @@ package com.example.victor.todaynews;
 import android.app.Service;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.IBinder;
+import android.os.TestLooperManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.*;
@@ -11,19 +12,24 @@ import android.view.*;
 
 import android.content.*;
 import android.content.DialogInterface.*;
+import java.util.*;
 
 public class TestActivity extends AppCompatActivity {
     SQLiteDatabase db;
-    Button start,contents,category,stop;
-    //ScrapyService.MyBinder binder;
-    NewsService.NewsBind binder;
+    Button start,contents,category,search, stop;
 
-    ServiceConnection conn = new ServiceConnection() {
+    NewsService.NewsBind news_binder;
+    ScrapyService.MyBinder test_binder;
+
+    ServiceConnection conn_news = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             System.out.println("---$$$$$$$$$connected$$$$$$$$$$$$$$---");
 
-            binder = (NewsService.NewsBind) iBinder;
+            news_binder = (NewsService.NewsBind) iBinder;
+
+
+            System.out.println("in ServiceConnection bind finish");
         }
 
         @Override
@@ -32,6 +38,30 @@ public class TestActivity extends AppCompatActivity {
         }
     };
 
+    ServiceConnection conn_test = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            test_binder = (ScrapyService.MyBinder) iBinder;
+            System.out.println(test_binder.get_content("connect"));
+            //System.out.println("in ServiceConnection bind finish");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            System.out.println("---disconnected---");
+        }
+    };
+    ServiceConnection conn_search = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            //search_binder = (NewsSearchService.NewsSearchBind)iBinder;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,24 +74,32 @@ public class TestActivity extends AppCompatActivity {
 
         contents = (Button) findViewById(R.id.contents);
         category = (Button) findViewById(R.id.category);
+        search = (Button) findViewById(R.id.search);
+
+        Intent _intent = new Intent(this, NewsService.class);
+        //_intent.putExtra("content","test");
+        //_intent.putExtras(new Bundle().putSerializable("request", new NewsRequest(20)))
+
+        bindService(_intent, conn_news, Service.BIND_AUTO_CREATE);
+       // System.out.println("bind finish");
 
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //NewsRequest request = new NewsRequest(5);
-                //Bundle bul = new Bundle();
-                //System.out.println("start!");
-                //bul.putSerializable("request", request);
-                //bul.putString("content","start here");
-                Intent intent = new Intent(TestActivity.this, NewsService.class);
-                //intent.putExtras(bul);
-                NewsRequest request = new NewsRequest(10);
-                Bundle bul = new Bundle();
-                bul.putSerializable("request",request);
-                intent.putExtras(bul);
+                //Intent intent = new Intent(TestActivity.this, ScrapyService.class);
+                //intent.putExtra("content","start");
+                //startService(intent);
+                System.out.println(test_binder.get_content("start"));
+            }
+        });
 
-                bindService(intent, conn, Service.BIND_AUTO_CREATE);
-
+        search.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                //Intent intent = new Intent(TestActivity.this, ScrapyService.class);
+                //intent.putExtra("content","search");
+                //startService(intent);
+                System.out.println(test_binder.get_content("content"));
             }
         });
 
@@ -71,24 +109,17 @@ public class TestActivity extends AppCompatActivity {
                 System.out.println("content!");
                 Bundle bul = new Bundle();
                 NewsRequest request = new NewsRequest(10);
-                bul.putSerializable("request",request);
 
-                Intent intent = new Intent(TestActivity.this, NewsService.class);
-                intent.putExtras(bul);
-
-                startService(intent);
-
-
-                //System.out.println("in contents content is : " + binder.get_content());
-
-                System.out.println("content!");
-                System.out.println("now at " + binder.get_page());
+                System.out.println("now at " + news_binder.get_page());
                 //System.out.println("now_url " + binder.get_url());
-                int total = binder.get_number();
+                Vector<NewsDigest> answer = news_binder.get_news_digest(request).get_news();
+                System.out.println("now at " + news_binder.get_page());
+
+                int total = answer.size();
                 if (total == 0) Toast.makeText(TestActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
                 else{
                   for (int i = 0; i < total; i++) {
-                    System.out.println(binder.get_news().get(i));
+                    System.out.println(answer.get(i));
                   }
                 }
 
@@ -97,28 +128,25 @@ public class TestActivity extends AppCompatActivity {
         category.setOnClickListener(new View.OnClickListener(){
           @Override
           public void onClick(View view){
-                System.out.println("category!");
+              System.out.println("content!");
+              Bundle bul = new Bundle();
+              NewsRequest request = new NewsRequest(10,1);
 
-                Bundle bul = new Bundle();
-                NewsRequest request = new NewsRequest(10,"科技");
-                bul.putSerializable("request",request);
-
-                Intent intent = new Intent(TestActivity.this, NewsService.class);
-                intent.putExtras(bul);
-
-                startService(intent);
-                System.out.println("now at " + binder.get_page());
+              System.out.println("now at " + news_binder.get_page());
               //System.out.println("now_url " + binder.get_url());
-                int total = binder.get_number();
-                if (total == 0) Toast.makeText(TestActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
-                else{
-                      for (int i = 0; i < total; i++) {
-                          System.out.println(binder.get_news().get(i));
-                          System.out.println(binder.get_news().get(i).type);
-                    }
-                }
-            }
+              Vector<NewsDigest> answer = news_binder.get_news_digest(request).get_news();
+              System.out.println("now at " + news_binder.get_page());
+
+              int total = answer.size();
+              if (total == 0) Toast.makeText(TestActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+              else{
+                  for (int i = 0; i < total; i++) {
+                      System.out.println(answer.get(i));
+                  }
+              }
+          }
         });
+
         stop.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){

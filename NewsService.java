@@ -15,30 +15,46 @@ import java.io.*;
  * Created by victor on 08/09/2017.
  */
 class ReadThread extends Thread {
-    private NewsRespond _respond;
     private String web_content;
     private String target_url;
-
-    public NewsRespond get_respond() {
-        return _respond;
-    }
+    private boolean is_digest;// true shows degist and false shows content
+    private NewsContent _content;
+    private Vector<NewsDigest> _digests;
 
     public String get_web_content() {
         return web_content;
     }
 
-    ReadThread(String _url) {
+    public NewsContent get_content(){
+        return _content;
+    }
+    public Vector<NewsDigest> get_digests(){
+        return _digests;
+    }
+
+    ReadThread(String _url,boolean _digest) {
+        _content = new NewsContent();
+        _digests = new Vector<NewsDigest> ();
         target_url = _url;
+        is_digest = _digest;
     }
 
     public void run() {
         System.out.println("Thread begin!");
         try {
             web_content = connect_internet(target_url);
+            if (is_digest) {
+                _digests = NewsParser.parse_digest(web_content);
+            }
+            else{
+                _content = NewsParser.parse_content(web_content);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
     private String connect_internet(String _url) throws Exception{
         URL realUrl = new URL(_url);
 
@@ -55,13 +71,13 @@ class ReadThread extends Thread {
             result += line;
         }
         in.close();
+
+
         return result;
     }
 }
 
 public class NewsService extends Service {
-    private NewsRequest request;
-    private NewsRespond respond;
 
     private int current_page = 0;
     private int last_type = 0;
@@ -72,105 +88,44 @@ public class NewsService extends Service {
 
     class NewsBind extends Binder{
         public int get_page(){return current_page;}
-        public NewsRespond get_respond(){
+
+        public NewsRespond get_news_digest(NewsRequest request){
+            System.out.println("request news");
+            int num = (int)request._get().get(0);
+            int type = (int)request._get().get(1);
+            if (type == last_type) current_page++;
+            else{
+                current_page = 1;
+                last_type = type;
+            }
+            if (num <= current_page) num = max_size;
+            String param = "pageNo=" + current_page + "&pageSize=" + num;
+            if (type != 0) param += "&category=" + type;
+
+            ReadThread webThread  = new ReadThread(urlString + "?" + param, true);
+            webThread.start();
+            try{webThread.join();}catch(Exception e){};
+            NewsRespond respond  = new NewsRespond(webThread.get_digests().size(), webThread.get_digests());
+
+            if (respond.number < num) {System.out.println("$$$$$$$$error$$$$$$$$$ less number!");}
             return respond;
         }
-        public Vector<NewsDigest> get_news(){return (Vector<NewsDigest>) respond._get().get(1);}
-        public int get_number(){return (int)respond._get().get(0);}
-    }
-
-
-    public IBinder onBind(Intent it){
-        System.out.println("News Service Bind");
-        request = (NewsRequest)it.getSerializableExtra("request");
-        int num = (int)request._get().get(0);
-        int type = (int)request._get().get(1);
-
-        if (type == last_type) current_page++;
-        else{
-            current_page = 1;
-            last_type = type;
-        }
-
-
-        if (num <= current_page) num = max_size;
-        String param = "pageNo=" + current_page + "&pageSize=" + num;
-        if (type != 0) param += "&category=" + type;
-
-        ReadThread webThread  = new ReadThread(urlString + "?" + param);
-        webThread.start();
-        try{webThread.join();}catch(Exception e){};
-
-        final String web_content = webThread.get_web_content();
-        //System.out.println(web_content);
-
-        respond._set(new ArrayList() {
-            {
-                try{
-                    Vector<NewsDigest> temp = NewsParser.parse_digest(web_content);
-                    add(temp.size());
-                    add(temp);
-                }catch(Exception e){
-                    System.out.println(e);
-                    Vector<NewsDigest> temp = new Vector<NewsDigest>();
-                    add(0);
-                    add(temp);
-                }
-            }
-        });
-
-        if (respond.number < num) {System.out.println("$$$$$$$$error$$$$$$$$$ less number!");}
-        return binder;
     }
 
     @Override
+    public IBinder onBind(Intent it){
+        System.out.println("Service Bind");
+        return binder;
+    }
+
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId){
-        System.out.println("request news");
-        request = (NewsRequest)intent.getSerializableExtra("request");
-        int num = (int)request._get().get(0);
-        int type = (int)request._get().get(1);
-
-        if (type == last_type) current_page++;
-        else{
-            current_page = 1;
-            last_type = type;
-        }
-
-
-        if (num <= current_page) num = max_size;
-        String param = "pageNo=" + current_page + "&pageSize=" + num;
-        if (type != 0) param += "&category=" + type;
-
-        ReadThread webThread  = new ReadThread(urlString + "?" + param);
-        webThread.start();
-        try{webThread.join();}catch(Exception e){};
-
-        final String web_content = webThread.get_web_content();
-        //System.out.println(web_content);
-
-        respond._set(new ArrayList() {
-            {
-                try{
-                    Vector<NewsDigest> temp = NewsParser.parse_digest(web_content);
-                    add(temp.size());
-                    add(temp);
-                }catch(Exception e){
-                    System.out.println(e);
-                    Vector<NewsDigest> temp = new Vector<NewsDigest>();
-                    add(0);
-                    add(temp);
-                }
-            }
-        });
-
-        if (respond.number < num) {System.out.println("$$$$$$$$error$$$$$$$$$ less number!");}
         return START_STICKY;
     }
 
     @Override
     public void onCreate(){
-        request = new NewsRequest();
-        respond = new NewsRespond();
         System.out.println("News Service create");
         super.onCreate();
     }
