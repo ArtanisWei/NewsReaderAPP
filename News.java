@@ -1,4 +1,3 @@
-import java.io.Serializable;
 package com.example.victor.todaynews;
 
 import java.io.Serializable;
