@@ -164,7 +164,7 @@ class NewsInsertRequest extends LocalNewsRequest{
 }
 class NewsDeleteRequest extends LocalNewsRequest{
     String news_id;
-    NewsDeleteRequest(String table_name, String _id){
+    NewsDeleteRequest(String _id, String table_name){
         super(table_name);
         news_id = _id;
     }
@@ -196,16 +196,16 @@ class LocalNewsRespond implements Interaction{
     }
 }
 class AllNewsRespond extends LocalNewsRespond{
-    HashMap<String, NewsDatabaseObject>  map;
+    HashMap<String, NewsDatabaseObject>  map = new HashMap<String, NewsDatabaseObject>();
     HashMap<String, NewsDatabaseObject> get_answer(){
         return map;
     }
     AllNewsRespond(HashMap<String, NewsDatabaseObject> mp){
-        mp = map;
+        map = mp;
     }
 }
 class NewsListRespond extends LocalNewsRespond{
-    HashSet<String> set;
+    HashSet<String> set = new HashSet<String>();
     HashSet<String> get_answer(){
         return set;
     }

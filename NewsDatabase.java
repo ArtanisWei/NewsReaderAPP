@@ -30,24 +30,24 @@ class DatabaseHelper extends SQLiteOpenHelper{
     public static final String CUTTER = "$$$";
     @Override
     public void onCreate(SQLiteDatabase db){
-        String CREATE_TABLE_HISTORY="CREATE TABLE "+ HISTORY + "("
-                +"_id INTEGER PRIMARY KEY AUTOINCREMENT , "
+        String CREATE_TABLE_HISTORY="CREATE TABLE if not exists "+ HISTORY + "("
+                +"__id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 +_TITLE+" TEXT, "
                 +_INTRO+" TEXT, "
                 +_ID+" TEXT, "
-                +_TYPE+" INTEGER, "
+                +_TYPE+" TEXT, "
                 +_PICTURES_PATH+" TEXT, "
                 +_CONTENT+" TEXT)";
-        String CRATE_TABLE_FAVORITE="CREATE TABLE "+ FAVORITE + "("
-                +"_id INTEGER PRIMARY KEY AUTOICREMENT , "
+        String CREATE_TABLE_FAVORITE="CREATE TABLE if not exists "+ FAVORITE + "("
+                +"_id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 +_TITLE+" TEXT, "
                 +_INTRO+" TEXT, "
                 +_ID+" TEXT, "
-                +_TYPE+" INTEGER, "
+                +_TYPE+" TEXT, "
                 +_PICTURES_PATH+" TEXT, "
                 +_CONTENT+" TEXT)";
+        db.execSQL(CREATE_TABLE_FAVORITE);
         db.execSQL(CREATE_TABLE_HISTORY);
-        db.execSQL(CRATE_TABLE_FAVORITE);
     }
     @Override
     public void onUpgrade(SQLiteDatabase db,int oldVersion, int newVersion){
@@ -61,6 +61,7 @@ public class NewsDatabase {
     public NewsDatabase(Context context){
         helper = new DatabaseHelper(context);
     }
+
     public void insert(NewsDatabaseObject object , String table_name){
         SQLiteDatabase db = helper.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -73,32 +74,33 @@ public class NewsDatabase {
         db.insert(table_name, null, values);
         db.close();
     }
+
     public boolean delete(String target_id, String table_name){
+
         SQLiteDatabase db = helper.getWritableDatabase();
-        if (table_name == DatabaseHelper.HISTORY) {
-            db.execSQL("TRUNCATE TABLE " + DatabaseHelper.HISTORY);
-            return true;
-        }
-        int cons = db.delete(table_name, DatabaseHelper._ID + "=?", new String[]{String.valueOf(target_id)});
-        db.close();
-        if (cons == 0) return false;
+       // if (table_name.equals(DatabaseHelper.HISTORY)) {
+        db.execSQL("DELETE From " + table_name + " where 1=1");
         return true;
+        //}
+       // String sql = "DELETE FROM " + table_name + " WHERE "+ DatabaseHelper._ID + " = " + "'" + target_id + "'";
+       // db.execSQL(sql);
+       // db.close();
+       // return true;
     }
     public HashMap<String, NewsDatabaseObject> getAllNews(String table_name){
         SQLiteDatabase db = helper.getReadableDatabase();
         String selectQuery = "SELECT " + DatabaseHelper._ID + "," + DatabaseHelper._TITLE + "," + DatabaseHelper._INTRO + "," +
-                DatabaseHelper._PICTURES_PATH + "," + DatabaseHelper._CONTENT + "," + DatabaseHelper._TYPE + " FROM"+
+                DatabaseHelper._PICTURES_PATH + "," + DatabaseHelper._CONTENT + "," + DatabaseHelper._TYPE + " FROM "+
                 table_name;
         HashMap<String, NewsDatabaseObject> map = new HashMap<String, NewsDatabaseObject>();
         Cursor cursor = db.rawQuery(selectQuery,null);
         if (cursor.moveToFirst()){
             do{
-
                 map.put(cursor.getString(cursor.getColumnIndex(DatabaseHelper._ID)), new NewsDatabaseObject(
                         cursor.getString(cursor.getColumnIndex(DatabaseHelper._TITLE)),
                         cursor.getString(cursor.getColumnIndex(DatabaseHelper._INTRO)),
                         cursor.getString(cursor.getColumnIndex(DatabaseHelper._ID)),
-                        cursor.getInt(cursor.getColumnIndex(DatabaseHelper._TYPE)),
+                        cursor.getString(cursor.getColumnIndex(DatabaseHelper._TYPE)),
                         cursor.getString(cursor.getColumnIndex(DatabaseHelper._PICTURES_PATH)),
                         cursor.getString(cursor.getColumnIndex(DatabaseHelper._CONTENT))
                 ));
@@ -109,8 +111,9 @@ public class NewsDatabase {
         return map;
     }
     public HashSet<String> getNewsList(String table_name){
+        System.out.println("now table is " + table_name);
         SQLiteDatabase db = helper.getReadableDatabase();
-        String selectQuery = "SELECT " + DatabaseHelper._ID + " FROM" + table_name;
+        String selectQuery = "SELECT " + DatabaseHelper._ID + " FROM " + table_name;
         HashSet<String> news_id = new HashSet<String>();
         Cursor cursor = db.rawQuery(selectQuery, null);
         if (cursor.moveToFirst()){

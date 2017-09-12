@@ -82,9 +82,9 @@ class ReadThread extends Thread {
 
 
 public class NewsService extends Service {
-    final private int max_size = 50;
+    final private int max_size = 10;
     private NewsBind binder = new NewsBind();
-    private NewsDatabase database = new NewsDatabase(this);
+    private NewsDatabase database;
     //private SQLiteDatabase database = new SQLiteDatabase(this);
 
 
@@ -151,7 +151,12 @@ public class NewsService extends Service {
             boolean success = false;
             if (!content.content.equals("")) success = true;
 
-            if (success) database.insert(new NewsDatabaseObject(digest, content), DatabaseHelper.HISTORY);
+
+            if (success) {
+                //NewsInsertRequest insert_request = new NewsInsertRequest(DatabaseHelper.HISTORY, digest,content);
+                //local_news(insert_request);
+                database.insert(new NewsDatabaseObject(digest, content), DatabaseHelper.FAVORITE);
+            }
 
             NewsContentRespond respond = new NewsContentRespond(success, content);
             return respond;
@@ -184,6 +189,8 @@ public class NewsService extends Service {
     @Override
     public IBinder onBind(Intent it){
         System.out.println("Service Bind");
+        database = new NewsDatabase(this);
+        if (database != null) System.out.println("database has been set up");
         return binder;
     }
 
@@ -197,6 +204,7 @@ public class NewsService extends Service {
     public void onCreate(){
         System.out.println("News Service create");
         super.onCreate();
+       // database = new NewsDatabase(this);
     }
     @Override
     public void onDestroy(){

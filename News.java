@@ -12,6 +12,38 @@ public class News implements Serializable{
     String url;
     Date time;
     String source;
+    static final HashMap<String,Integer> from_String_to_Integer = new HashMap<String, Integer>(){
+        {
+            put("科技",1);
+            put("教育",2);
+            put("军事",3);
+            put("国内",4);
+            put("社会",5);
+            put("文化",6);
+            put("汽车",7);
+            put("国际",8);
+            put("体育",9);
+            put("财经",10);
+            put("健康",11);
+            put("娱乐",12);
+        }
+    };
+    static final HashMap<Integer,String> from_Integer_to_String = new HashMap<Integer,String>(){
+        {
+            put(1,"科技");
+            put(2,"教育");
+            put(3,"军事");
+            put(4,"国内");
+            put(5,"社会");
+            put(6,"文化");
+            put(7,"汽车");
+            put(8,"国际");
+            put(9,"体育");
+            put(10,"财经");
+            put(11,"健康");
+            put(12,"娱乐");
+        }
+    };
     News(){
         type = "";
         id = "";
@@ -28,17 +60,17 @@ class NewsDatabaseObject extends News{
     String title;
     String intro;
     String id;
-    int type;
+    String type;
     String picture_path;
     String content;
     NewsDatabaseObject(){
-
     }
+
     NewsDatabaseObject(NewsDigest digest, NewsContent _content){
         title = digest.title;
         intro = digest.intro;
         id = digest.id;
-        type = Interaction.from_String_to_Integer.get(digest.type);
+        type = digest.type;
         picture_path = "";
         Vector<String> pictures = _content.picture_urls;
         for(String s:pictures){
@@ -47,13 +79,19 @@ class NewsDatabaseObject extends News{
         }
         content = _content.content;
     }
-    NewsDatabaseObject(String _title, String _intro, String _id, int _type, String _picture_path, String _content){
+
+    NewsDatabaseObject(String _title, String _intro, String _id, String _type, String _picture_path, String _content){
         title = _title;
         intro = _intro;
         id = _id;
         type = _type;
         picture_path = _picture_path;
         content = _content;
+    }
+    @Override
+    public String toString(){
+        return ("\ntitle: " + title + "\nintro" + intro + "\ntype" + type
+                + "\npicture_start: \n" + picture_path + "\npicture_end\n" + content);
     }
 }
 class NewsDigest extends News{
