@@ -177,6 +177,22 @@ class NewsInsertByid extends NewsInsertRequest{
     }
 }
 
+class NewsGetByidRequest extends LocalNewsRequest{
+    String news_id;
+    String table_name;
+    NewsGetByidRequest(String _id, String _table_name){
+        news_id = _id;
+        table_name = _table_name;
+    }
+}
+class NewsGetByidRespond extends LocalNewsRespond{
+    NewsContent content;
+    NewsGetByidRespond(NewsContent _content){
+        content = _content;
+    }
+    public NewsContent get_content(){return content;}
+}
+
 class NewsDeleteRequest extends LocalNewsRequest{
     String news_id;
     NewsDeleteRequest(String _id, String table_name){
@@ -241,6 +257,9 @@ class NewsContentRequest implements Interaction{
     String newsintro;
     NewsContentRequest(String id, String title, String intro){
         newsid = id;newstitle = title; newsintro = intro;
+    }
+    NewsContentRequest(String id){
+        newsid = id;
     }
     public String get_id(){return newsid;}
     public ArrayList _get(){

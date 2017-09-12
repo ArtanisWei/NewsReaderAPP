@@ -53,6 +53,7 @@ class ReadThread extends Thread {
 
         } catch (Exception e) {
             e.printStackTrace();
+            return;
         }
     }
 
@@ -114,6 +115,7 @@ public class NewsService extends Service {
             webThread.start();
             try{webThread.join();}catch(Exception e){};
             Vector<NewsDigest> temp = webThread.get_digests();
+
             NewsRespond respond  = new NewsRespond(temp.size(), temp);
 
             if (respond.number < max_size) {System.out.println("$$$$$$$$error$$$$$$$$$ less number!");}
@@ -188,6 +190,23 @@ public class NewsService extends Service {
             if (request instanceof NewsTitleRequest){
                 Vector<NewsDigest> vet = database.getNewsTitle(request.table_name);
                 return new NewsTitleRespond(vet);
+            }
+            if (request instanceof NewsGetByidRequest){
+                NewsDatabaseObject object = database.getNewsByid(((NewsGetByidRequest) request).news_id, ((NewsGetByidRequest) request).table_name);
+                NewsContentRequest content_request = new NewsContentRequest(object.id);
+                NewsContentRespond content_respond = news_content(content_request);
+                if (content_respond.is_success()){
+                    return new NewsGetByidRespond(content_respond.get_answer());
+                }else{
+                    Vector<String> picture_path = new Vector<String>();
+                    String[] pictures = object.picture_path.split(DatabaseHelper.CUTTER);
+                    for (int i = 0; i < pictures.length; i++){
+                        picture_path.add(pictures[i]);
+                    }
+                    NewsContent content = new NewsContent(new HashSet<String>(), picture_path, object.content);
+                    return new NewsGetByidRespond(content);
+                }
+
             }
             System.out.println("error");
             return new LocalNewsRespond();

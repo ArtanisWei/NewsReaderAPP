@@ -157,5 +157,22 @@ class NewsContent extends News{
         picture_urls = picture;
         content = _content;
     }
+    public String toString(){
+        String result = content;
+        result += "\n";
+        result += "picture start: \n";
+        for (int i = 0; i < picture_urls.size(); i++){
+            result += picture_urls.get(i);
+            result += "\n";
+        }
+        result += "picture end \n";
+        result += "words start: \n";
+        for (String s: special_words){
+            result += s;
+            result += "\n";
+        }
+        result += "word end \n";
+        return result;
+    }
 
 }
