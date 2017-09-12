@@ -20,10 +20,42 @@ public class News implements Serializable{
         source = "";
     };
     News(String _type, String _id, String _url, Date _time, String _source){
-        type = _type; _id = id; url = _url; time = _time; source = _source;
+        type = _type; id = _id; url = _url; time = _time; source = _source;
     }
 }
 
+class NewsDatabaseObject extends News{
+    String title;
+    String intro;
+    String id;
+    int type;
+    String picture_path;
+    String content;
+    NewsDatabaseObject(){
+
+    }
+    NewsDatabaseObject(NewsDigest digest, NewsContent _content){
+        title = digest.title;
+        intro = digest.intro;
+        id = digest.id;
+        type = Interaction.from_String_to_Integer.get(digest.type);
+        picture_path = "";
+        Vector<String> pictures = _content.picture_urls;
+        for(String s:pictures){
+            String _target = s + DatabaseHelper.CUTTER;
+            picture_path = picture_path + _target;
+        }
+        content = _content.content;
+    }
+    NewsDatabaseObject(String _title, String _intro, String _id, int _type, String _picture_path, String _content){
+        title = _title;
+        intro = _intro;
+        id = _id;
+        type = _type;
+        picture_path = _picture_path;
+        content = _content;
+    }
+}
 class NewsDigest extends News{
     String title;
     String intro;
@@ -32,8 +64,14 @@ class NewsDigest extends News{
         title = "";
         intro = "";
     }
+    NewsDigest(String _title, String _intro){
+        super();
+        title = _title;
+        intro = _intro;
+    }
     NewsDigest(String _type, String _id, String _url, Date _time, String _source, String _title, String _intro){
         super(_type,_id,_url,_time,_source);
+
         title = _title;
         intro = _intro;
     }

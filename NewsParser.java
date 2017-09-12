@@ -31,6 +31,7 @@ public class NewsParser {
     static Pattern content_feature_regex = Pattern.compile("(.*?) : \"(.*)\"");
     static Pattern words_regex = Pattern.compile("\"word\" : \"(.*?)\"");
     static Pattern major_pattern = Pattern.compile("\"list\":\\[(.*)\\],\"pageNo\"");
+    static Pattern picture_pattern = Pattern.compile("http://.*?\\.(jpg|jpeg|png|gif)");
 
     private static String get_digest_info(String raw) throws NewsParserException{
         Matcher map = digest_feature_regex.matcher(raw);
@@ -83,9 +84,9 @@ public class NewsParser {
             //System.out.println(raw.indexOf("\"news_Pictures\"") + " " + raw.indexOf("\"news_Source\""));
             String sub_picture = raw.substring(raw.indexOf("\"news_Pictures\""), raw.indexOf("\"news_Source\""));
             //System.out.println("sub_picture is: " + sub_picture);
-            String[] picture_list = sub_picture.split(" ");
-            for (int i = 2; i < picture_list.length - 1; i++){
-                answer.add(picture_list[i]);
+            Matcher picture_match = picture_pattern.matcher(sub_picture);
+            while(picture_match.find()){
+                answer.add(sub_picture.substring(picture_match.start(),picture_match.end()));
             }
             return answer;
         }catch(Exception e){
@@ -135,7 +136,7 @@ public class NewsParser {
                 String _title = get_digest_info(temp_news.substring(temp_news.indexOf("\"news_Title\""),temp_news.indexOf("\"news_URL\"") - 1));
                 String _intro = get_digest_info(temp_news.substring(temp_news.indexOf("\"news_Intro\"")));
 
-                answer.add(new NewsDigest(_type,_id,_url,_date,_source,_title,_intro));
+                answer.add(new NewsDigest(_type, _id, _url, _date,_source,_title,_intro));
                 //System.out.println("news finish!");
             }
             return answer;

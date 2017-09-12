@@ -80,9 +80,13 @@ class ReadThread extends Thread {
     }
 }
 
+
 public class NewsService extends Service {
     final private int max_size = 50;
     private NewsBind binder = new NewsBind();
+    private NewsDatabase database = new NewsDatabase(this);
+    //private SQLiteDatabase database = new SQLiteDatabase(this);
+
 
     final private String LATEST_NEWS = "http://166.111.68.66:2042/news/action/query/latest";
     final private String SEARCH_NEWS = "http://166.111.68.66:2042/news/action/query/search";
@@ -142,13 +146,38 @@ public class NewsService extends Service {
             webThread.start();
             try{webThread.join();}catch(Exception e){};
 
+            NewsDigest digest = new NewsDigest(request.newstitle, request.newsintro);
             NewsContent content = webThread.get_content();
             boolean success = false;
             if (!content.content.equals("")) success = true;
-            NewsContentRespond respond = new NewsContentRespond(true, content);
+
+            if (success) database.insert(new NewsDatabaseObject(digest, content), DatabaseHelper.HISTORY);
+
+            NewsContentRespond respond = new NewsContentRespond(success, content);
             return respond;
         }
 
+        public LocalNewsRespond local_news(LocalNewsRequest request){
+            if (request instanceof NewsInsertRequest){
+                NewsDatabaseObject object = new NewsDatabaseObject(((NewsInsertRequest) request).digest,((NewsInsertRequest) request).content);
+                database.insert(object,request.table_name);
+                return new LocalNewsRespond();
+            }
+            if (request instanceof NewsDeleteRequest){
+                boolean _success = database.delete(((NewsDeleteRequest) request).news_id, request.table_name);
+                return new LocalNewsRespond(_success);
+            }
+            if (request instanceof AllNewsRequest){
+                HashMap<String, NewsDatabaseObject> map = database.getAllNews(request.table_name);
+                return new AllNewsRespond(map);
+            }
+            if (request instanceof NewsListRequest){
+                HashSet<String> set = database.getNewsList(request.table_name);
+                return new NewsListRespond(set);
+            }
+            System.out.println("error");
+            return new LocalNewsRespond();
+        }
 
     }
 

@@ -8,7 +8,7 @@ import java.security.KeyException;
 import java.util.*;
 
 public interface Interaction extends Serializable{
-    final HashMap<String,Integer> from_String_to_Integer = new HashMap<String, Integer>(){
+    static final HashMap<String,Integer> from_String_to_Integer = new HashMap<String, Integer>(){
         {
             put("科技",1);
             put("教育",2);
@@ -24,7 +24,7 @@ public interface Interaction extends Serializable{
             put("娱乐",12);
         }
     };
-    final HashMap<Integer,String> from_Integer_to_String = new HashMap<Integer,String>(){
+    static final HashMap<Integer,String> from_Integer_to_String = new HashMap<Integer,String>(){
         {
             put(1,"科技");
             put(2,"教育");
@@ -138,35 +138,89 @@ class NewsSearchRespond implements Interaction{
     }
 }
 
-class NewsFavouriteRequest implements Interaction{
-    String news_id;//目标新闻id
-    int operator;//操作码，1表示添加新闻上述新闻id, 2表示删除上述新闻id, 3表示返回上述新闻具体内容，4表示列出列表上述新闻id无效
-    NewsFavouriteRequest(String id, int _o){
-        news_id = id;
-        operator = _o;
+class LocalNewsRequest implements Interaction{
+    String table_name;
+    LocalNewsRequest(String _name){
+        table_name = _name;
+    }
+    LocalNewsRequest(){
+        table_name = "";
     }
     public ArrayList _get(){
-        ArrayList temp = new ArrayList();
-        temp.add(news_id);
-        temp.add(operator);
-        return temp;
+        return new ArrayList();
     }
-    public boolean _set(ArrayList temp){
-        try{
-            news_id = (String)temp.get(0);
-            operator = (int)temp.get(1);
-            return true;
-        }catch(Exception e){
-            e.printStackTrace();
-            return false;
-        }
+    public boolean _set(ArrayList para){
+        return true;
+    }
+}
+class NewsInsertRequest extends LocalNewsRequest{
+    NewsDigest digest;
+    NewsContent content;
+    NewsInsertRequest(String table_name, NewsDigest _digest, NewsContent _content){
+        super(table_name);
+        digest = _digest;
+        content = _content;
+    }
+}
+class NewsDeleteRequest extends LocalNewsRequest{
+    String news_id;
+    NewsDeleteRequest(String table_name, String _id){
+        super(table_name);
+        news_id = _id;
+    }
+}
+class NewsListRequest extends LocalNewsRequest{
+    NewsListRequest(String table_name){
+        super(table_name);
+    }
+}
+class AllNewsRequest extends LocalNewsRequest{
+    AllNewsRequest(String table_name){
+        super(table_name);
     }
 }
 
+class LocalNewsRespond implements Interaction{
+    boolean is_success;
+    LocalNewsRespond(){
+
+    }
+    LocalNewsRespond(boolean _success){
+        is_success = _success;
+    }
+    public ArrayList _get(){
+        return new ArrayList();
+    }
+    public boolean _set(ArrayList para){
+        return true;
+    }
+}
+class AllNewsRespond extends LocalNewsRespond{
+    HashMap<String, NewsDatabaseObject>  map;
+    HashMap<String, NewsDatabaseObject> get_answer(){
+        return map;
+    }
+    AllNewsRespond(HashMap<String, NewsDatabaseObject> mp){
+        mp = map;
+    }
+}
+class NewsListRespond extends LocalNewsRespond{
+    HashSet<String> set;
+    HashSet<String> get_answer(){
+        return set;
+    }
+    NewsListRespond(HashSet<String> _set){
+        set = _set;
+    }
+}
+
+
 class NewsContentRequest implements Interaction{
     String newsid;//需要查看详情的新闻id
-    NewsContentRequest(String id){
-        newsid = id;
+    String newstitle;
+    String newsintro;
+    NewsContentRequest(String id, String title, String intro){
+        newsid = id;newstitle = title; newsintro = intro;
     }
     public String get_id(){return newsid;}
     public ArrayList _get(){
@@ -219,29 +273,6 @@ class NewsRespond implements Interaction{
             return false;
         }
     }
-}
-
-class NewsFavourtieRespond implements Interaction{
-    boolean success;//返回对缓存的这次操作是否成功
-    Vector<NewsDigest> list;//返回缓存列表（如果需要的话）
-    NewsContent content;//返回指定新闻的内容
-
-
-    NewsFavourtieRespond(boolean _success){
-        success = _success;
-        list = new Vector<NewsDigest>();
-        content = new NewsContent();
-    }
-    public ArrayList _get(){
-        ArrayList temp = new ArrayList();
-        temp.add(success);
-        temp.add(list);
-        temp.add(content);
-        return temp;
-    }
-    public boolean _set(ArrayList temp){//弃置不用
-        return true;
-    } //由于这个回应内容太过复杂，所以可以直接修改内部变量
 }
 
 class NewsContentRespond implements Interaction{
