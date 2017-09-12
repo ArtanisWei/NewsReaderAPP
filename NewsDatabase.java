@@ -11,6 +11,7 @@ import android.database.Cursor;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Vector;
 
 class DatabaseHelper extends SQLiteOpenHelper{
     private static final int DATABASE_VERSION = 4;
@@ -78,14 +79,14 @@ public class NewsDatabase {
     public boolean delete(String target_id, String table_name){
 
         SQLiteDatabase db = helper.getWritableDatabase();
-       // if (table_name.equals(DatabaseHelper.HISTORY)) {
-        db.execSQL("DELETE From " + table_name + " where 1=1");
+        if (table_name.equals(DatabaseHelper.HISTORY)) {
+            db.execSQL("DELETE From " + table_name + " where 1=1");
+            return true;
+        }
+        String sql = "DELETE FROM " + table_name + " WHERE "+ DatabaseHelper._ID + " = " + "'" + target_id + "'";
+        db.execSQL(sql);
+        db.close();
         return true;
-        //}
-       // String sql = "DELETE FROM " + table_name + " WHERE "+ DatabaseHelper._ID + " = " + "'" + target_id + "'";
-       // db.execSQL(sql);
-       // db.close();
-       // return true;
     }
     public HashMap<String, NewsDatabaseObject> getAllNews(String table_name){
         SQLiteDatabase db = helper.getReadableDatabase();
@@ -111,7 +112,7 @@ public class NewsDatabase {
         return map;
     }
     public HashSet<String> getNewsList(String table_name){
-        System.out.println("now table is " + table_name);
+        //System.out.println("now table is " + table_name);
         SQLiteDatabase db = helper.getReadableDatabase();
         String selectQuery = "SELECT " + DatabaseHelper._ID + " FROM " + table_name;
         HashSet<String> news_id = new HashSet<String>();
@@ -124,5 +125,43 @@ public class NewsDatabase {
         cursor.close();
         db.close();
         return news_id;
+    }
+    public Vector<NewsDigest> getNewsTitle(String table_name){
+        System.out.println("now table is " + table_name);
+        SQLiteDatabase db = helper.getReadableDatabase();
+        String selectQuery = "SELECT " + DatabaseHelper._TITLE + "," + DatabaseHelper._INTRO + "," + DatabaseHelper._ID + " FROM " + table_name;
+        Vector<NewsDigest> digests = new Vector<NewsDigest>();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()){
+            do{
+                NewsDigest digest = new NewsDigest(cursor.getString(cursor.getColumnIndex(DatabaseHelper._TITLE)), cursor.getString(cursor.getColumnIndex(DatabaseHelper._INTRO)));
+                digest.id = cursor.getString(cursor.getColumnIndex(DatabaseHelper._ID));
+                digests.add(digest);
+            }while(cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return digests;
+    }
+    public NewsDatabaseObject getNewsByid(String target_id, String table_name){
+        SQLiteDatabase db = helper.getReadableDatabase();
+        String selectQuery="SELECT " + DatabaseHelper._ID + "," + DatabaseHelper._INTRO + "," + DatabaseHelper._TITLE + "," + DatabaseHelper._CONTENT + ","
+                + DatabaseHelper._PICTURES_PATH + "," + DatabaseHelper._TYPE + " FROM "+ table_name + " WHERE "
+                +DatabaseHelper._ID + "=?";
+        NewsDatabaseObject object = new NewsDatabaseObject();
+        Cursor cursor = db.rawQuery(selectQuery,new String[]{String.valueOf(target_id)});
+        if (cursor.moveToFirst()){
+            do{
+                object.title = cursor.getString(cursor.getColumnIndex(DatabaseHelper._TITLE));
+                object.intro = cursor.getString(cursor.getColumnIndex(DatabaseHelper._INTRO));
+                object.picture_path = cursor.getString(cursor.getColumnIndex(DatabaseHelper._PICTURES_PATH));
+                object.content = cursor.getString(cursor.getColumnIndex(DatabaseHelper._CONTENT));
+                object.id = cursor.getString(cursor.getColumnIndex(DatabaseHelper._ID));
+                object.type = cursor.getString(cursor.getColumnIndex(DatabaseHelper._TYPE));
+            }while(cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return object;
     }
 }

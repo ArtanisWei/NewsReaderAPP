@@ -153,15 +153,30 @@ class LocalNewsRequest implements Interaction{
         return true;
     }
 }
+class NewsTitleRequest extends LocalNewsRequest{
+    String _table_name;
+    NewsTitleRequest(String _name){table_name = _name;}
+}
 class NewsInsertRequest extends LocalNewsRequest{
     NewsDigest digest;
     NewsContent content;
+    NewsInsertRequest(){
+    }
     NewsInsertRequest(String table_name, NewsDigest _digest, NewsContent _content){
         super(table_name);
         digest = _digest;
         content = _content;
     }
 }
+class NewsInsertByid extends NewsInsertRequest{
+    String news_id;
+    String table_name;
+    NewsInsertByid(String _name, String id){
+        table_name = _name;
+        news_id = id;
+    }
+}
+
 class NewsDeleteRequest extends LocalNewsRequest{
     String news_id;
     NewsDeleteRequest(String _id, String table_name){
@@ -212,6 +227,11 @@ class NewsListRespond extends LocalNewsRespond{
     NewsListRespond(HashSet<String> _set){
         set = _set;
     }
+}
+class NewsTitleRespond extends LocalNewsRespond{
+    Vector<NewsDigest> answer = new Vector<NewsDigest>();
+    NewsTitleRespond(Vector<NewsDigest> vet){answer = vet;}
+    Vector<NewsDigest> get_answer(){return answer;}
 }
 
 

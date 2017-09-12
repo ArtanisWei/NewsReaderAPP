@@ -155,7 +155,7 @@ public class NewsService extends Service {
             if (success) {
                 //NewsInsertRequest insert_request = new NewsInsertRequest(DatabaseHelper.HISTORY, digest,content);
                 //local_news(insert_request);
-                database.insert(new NewsDatabaseObject(digest, content), DatabaseHelper.FAVORITE);
+               // database.insert(new NewsDatabaseObject(digest, content), DatabaseHelper.FAVORITE);
             }
 
             NewsContentRespond respond = new NewsContentRespond(success, content);
@@ -164,6 +164,11 @@ public class NewsService extends Service {
 
         public LocalNewsRespond local_news(LocalNewsRequest request){
             if (request instanceof NewsInsertRequest){
+                if (request instanceof NewsInsertByid){
+                    NewsDatabaseObject object = database.getNewsByid(((NewsInsertByid) request).news_id, DatabaseHelper.HISTORY);
+                    database.insert(object, ((NewsInsertByid) request).table_name);
+                    return new LocalNewsRespond();
+                }
                 NewsDatabaseObject object = new NewsDatabaseObject(((NewsInsertRequest) request).digest,((NewsInsertRequest) request).content);
                 database.insert(object,request.table_name);
                 return new LocalNewsRespond();
@@ -179,6 +184,10 @@ public class NewsService extends Service {
             if (request instanceof NewsListRequest){
                 HashSet<String> set = database.getNewsList(request.table_name);
                 return new NewsListRespond(set);
+            }
+            if (request instanceof NewsTitleRequest){
+                Vector<NewsDigest> vet = database.getNewsTitle(request.table_name);
+                return new NewsTitleRespond(vet);
             }
             System.out.println("error");
             return new LocalNewsRespond();
