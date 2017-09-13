@@ -101,13 +101,15 @@ public class NewsService extends Service {
             System.out.println("request news");
             int page = (int)request._get().get(0);
             int type = (int)request._get().get(1);
+            int size = request.size;
+            if (size == -1) size = max_size;
 
-            if (page >= max_size) {
+            if (page >= size) {
                 System.out.println("no more news, page back to the end");
                 page = 1;
             }
 
-            String param = "pageNo=" + page + "&pageSize=" + max_size;
+            String param = "pageNo=" + page + "&pageSize=" + size;
 
             if (type != 0) param += "&category=" + type;
 
@@ -165,15 +167,20 @@ public class NewsService extends Service {
         }
 
         public LocalNewsRespond local_news(LocalNewsRequest request){
+            if (request instanceof NewsInsertByid){
+                NewsDatabaseObject object = database.getNewsByid(((NewsInsertByid) request).news_id, DatabaseHelper.HISTORY);
+                database.insert(object, ((NewsInsertByid) request).table_name);
+                return new LocalNewsRespond();
+            }
             if (request instanceof NewsInsertRequest){
-                if (request instanceof NewsInsertByid){
-                    NewsDatabaseObject object = database.getNewsByid(((NewsInsertByid) request).news_id, DatabaseHelper.HISTORY);
-                    database.insert(object, ((NewsInsertByid) request).table_name);
-                    return new LocalNewsRespond();
-                }
                 NewsDatabaseObject object = new NewsDatabaseObject(((NewsInsertRequest) request).digest,((NewsInsertRequest) request).content);
                 database.insert(object,request.table_name);
                 return new LocalNewsRespond();
+            }
+            if (request instanceof NewsClearRequest){
+                System.out.println("table_name is : " + request.table_name);
+                boolean _success = database.clear(request.table_name);
+                return new LocalNewsRespond(_success);
             }
             if (request instanceof NewsDeleteRequest){
                 boolean _success = database.delete(((NewsDeleteRequest) request).news_id, request.table_name);
@@ -208,10 +215,53 @@ public class NewsService extends Service {
                 }
 
             }
-            System.out.println("error");
+            if (request instanceof NewsTypeRequest){
+                String table = ((NewsTypeRequest) request).table_name;
+                Vector<String> all_type = database.getType(table);
+                return new NewsTypeRespond(all_type);
+            }
+
+            System.out.println("error_type");
             return new LocalNewsRespond();
         }
 
+
+        public NewsRecommendRespond news_recommand(NewsRecommendRequest request){
+            NewsTypeRespond histor_respond  = (NewsTypeRespond)local_news(new NewsTypeRequest(DatabaseHelper.HISTORY));
+            Vector<Integer> history_max_type = histor_respond.get_answer();
+            NewsTypeRespond favorite_respond = (NewsTypeRespond)local_news(new NewsTypeRequest(DatabaseHelper.FAVORITE));
+            Vector<Integer> favorite_max_type = favorite_respond.get_answer();
+            boolean[] total_type = new boolean[13];
+            for (int i = 0; i < total_type.length;i++){
+                total_type[i] = false;
+            }
+            for (int i : history_max_type){
+                total_type[i] = true;
+            }
+            for (int i:favorite_max_type){
+                total_type[i] = true;
+            }
+
+            Vector<NewsDigest> answer = new Vector<NewsDigest>();
+
+          //  for (int i = 0;i < total_type.length;i++){
+          //      if (total_type[i]){
+          //          Vector<NewsDigest> all_news = get_news_digest(new NewsRequest(1,i)).get_news();
+          //          for (NewsDigest d:all_news){
+          //              answer.add(d);
+          //          }
+          //      }
+           // }
+            for(int start_page = 1; answer.size() < 20; start_page++){
+                Vector<NewsDigest> all_news = get_news_digest(new NewsRequest(start_page,200,0)).get_news();
+                for (NewsDigest d: all_news){
+                    int num = request.from_String_to_Integer.get(d.type);
+                    if (total_type[num]) answer.add(d);
+                }
+            }
+
+            return new NewsRecommendRespond(answer);
+        }
     }
 
     @Override

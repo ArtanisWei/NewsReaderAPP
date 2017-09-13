@@ -47,21 +47,30 @@ public interface Interaction extends Serializable{
 class NewsRequest implements Interaction{
     int page;//想看哪一页
     int type;//传入需要的种类，如果无种类的特殊需求则传入0
-
+    int size;//显示指定数目
     NewsRequest(){
         page = 0;
         type = 0;
+        size = -1;
     }
     NewsRequest(int _num){
         page = _num;
         type = 0;
+        size = -1;
+    }
+    NewsRequest(int _page, int _size, int _type){
+        page = _page;
+        size = _size;
+        type = _type;
     }
     NewsRequest(int _num, String _type){
         page = _num;
+        size = -1;
         type = from_String_to_Integer.get(_type);
     }
     NewsRequest(int _num, int _type){
         page = _num;
+        size = -1;
         type = _type;
     }
 
@@ -195,11 +204,21 @@ class NewsGetByidRespond extends LocalNewsRespond{
 
 class NewsDeleteRequest extends LocalNewsRequest{
     String news_id;
+    NewsDeleteRequest(){
+
+    }
     NewsDeleteRequest(String _id, String table_name){
         super(table_name);
         news_id = _id;
     }
 }
+class NewsClearRequest extends NewsDeleteRequest{
+    //String table_name;
+    NewsClearRequest(String _table_name){
+        table_name = _table_name;
+    }
+}
+
 class NewsListRequest extends LocalNewsRequest{
     NewsListRequest(String table_name){
         super(table_name);
@@ -341,6 +360,72 @@ class NewsContentRespond implements Interaction{
         }catch(Exception e){
             e.printStackTrace();
             return false;
+        }
+    }
+}
+
+class NewsRecommendRequest implements  Interaction{
+    NewsRecommendRequest(){
+
+    }
+    public ArrayList _get(){
+        return new ArrayList();
+    }
+    public boolean _set(ArrayList temp){
+        return true;
+    }
+
+}
+class NewsRecommendRespond implements Interaction{
+    Vector<NewsDigest> answer = new Vector<NewsDigest>();
+    NewsRecommendRespond(Vector<NewsDigest> _answer){
+        answer = _answer;
+    }
+    public Vector<NewsDigest> get_answer(){
+        return answer;
+    }
+    public ArrayList _get(){
+        return new ArrayList();
+    }
+    public boolean _set(ArrayList temp){
+        return true;
+    }
+
+}
+
+class NewsTypeRequest extends LocalNewsRequest{
+    String table_name;
+    NewsTypeRequest(String _table_name){
+        table_name = _table_name;
+    }
+}
+
+class NewsTypeRespond extends LocalNewsRespond{
+    Vector<Integer> max_type = new Vector<Integer>();
+    Vector<String> all_type = new Vector<String>();
+    private int[] type_bit_map = new int[13];
+    public Vector<Integer> get_answer(){
+        return max_type;
+    }
+    public Vector<String> get_all_type(){
+        return all_type;
+    }
+
+    NewsTypeRespond(Vector<String> type){
+        all_type = type;
+        int maximum = 0;
+        for(String s:type){
+            int now_type = from_String_to_Integer.get(s);
+            int now_num = ++type_bit_map[now_type];
+            if (now_num > maximum){
+                max_type.clear();
+                max_type.add(now_type);
+                maximum = now_num;
+                continue;
+            }
+            if (now_num == maximum){
+                max_type.add(now_type);
+            }
         }
     }
 }

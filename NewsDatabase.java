@@ -77,15 +77,16 @@ public class NewsDatabase {
     }
 
     public boolean delete(String target_id, String table_name){
-
         SQLiteDatabase db = helper.getWritableDatabase();
-        if (table_name.equals(DatabaseHelper.HISTORY)) {
-            db.execSQL("DELETE From " + table_name + " where 1=1");
-            return true;
-        }
         String sql = "DELETE FROM " + table_name + " WHERE "+ DatabaseHelper._ID + " = " + "'" + target_id + "'";
         db.execSQL(sql);
         db.close();
+        return true;
+    }
+
+    public boolean clear(String _table_name){
+        SQLiteDatabase db = helper.getWritableDatabase();
+        db.execSQL("DELETE From " + _table_name + " where 1=1");
         return true;
     }
     public HashMap<String, NewsDatabaseObject> getAllNews(String table_name){
@@ -163,5 +164,20 @@ public class NewsDatabase {
         cursor.close();
         db.close();
         return object;
+    }
+    public Vector<String> getType(String table_name){
+        SQLiteDatabase db = helper.getReadableDatabase();
+        String selectQuery = "SELECT " + DatabaseHelper._TYPE + " FROM " + table_name + " WHERE 1=1";
+        Vector<String> all_types = new Vector<String>();
+
+        Cursor cursor = db.rawQuery(selectQuery,null);
+        if (cursor.moveToFirst()){
+            do{
+                all_types.add(cursor.getString(cursor.getColumnIndex(DatabaseHelper._TYPE)));
+            }while(cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return all_types;
     }
 }
