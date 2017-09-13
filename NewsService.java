@@ -242,21 +242,23 @@ public class NewsService extends Service {
 
             Vector<NewsDigest> answer = new Vector<NewsDigest>();
 
-          //  for (int i = 0;i < total_type.length;i++){
-          //      if (total_type[i]){
-          //          Vector<NewsDigest> all_news = get_news_digest(new NewsRequest(1,i)).get_news();
-          //          for (NewsDigest d:all_news){
-          //              answer.add(d);
-          //          }
-          //      }
-           // }
-            for(int start_page = 1; answer.size() < 20; start_page++){
-                Vector<NewsDigest> all_news = get_news_digest(new NewsRequest(start_page,200,0)).get_news();
-                for (NewsDigest d: all_news){
-                    int num = request.from_String_to_Integer.get(d.type);
-                    if (total_type[num]) answer.add(d);
+            for (int i = 0;i < total_type.length;i++){
+                if (total_type[i]){
+                    Vector<NewsDigest> all_news = get_news_digest(new NewsRequest(1,i)).get_news();
+                    for (NewsDigest d:all_news){
+                        answer.add(d);
+                    }
                 }
             }
+
+            Collections.shuffle(answer);
+          //  for(int start_page = 1; answer.size() < 20; start_page++){
+          //      Vector<NewsDigest> all_news = get_news_digest(new NewsRequest(start_page,200,0)).get_news();
+          //      for (NewsDigest d: all_news){
+          //          int num = request.from_String_to_Integer.get(d.type);
+          //          if (total_type[num]) answer.add(d);
+          //      }
+          //  }
 
             return new NewsRecommendRespond(answer);
         }
