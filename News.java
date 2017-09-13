@@ -64,6 +64,7 @@ class NewsDatabaseObject extends News{
     String picture_path;
     String content;
     NewsDatabaseObject(){
+        content = "";
     }
 
     NewsDatabaseObject(NewsDigest digest, NewsContent _content){

@@ -196,8 +196,14 @@ class NewsGetByidRequest extends LocalNewsRequest{
 }
 class NewsGetByidRespond extends LocalNewsRespond{
     NewsContent content;
-    NewsGetByidRespond(NewsContent _content){
+    boolean success;
+    NewsGetByidRespond(boolean is_success, NewsContent _content){
+        success = is_success;
         content = _content;
+    }
+    NewsGetByidRespond(boolean is_success){
+        success = is_success;
+        content = new NewsContent();
     }
     public NewsContent get_content(){return content;}
 }
@@ -274,12 +280,15 @@ class NewsContentRequest implements Interaction{
     String newsid;//需要查看详情的新闻id
     String newstitle;
     String newsintro;
+
     NewsContentRequest(String id, String title, String intro){
         newsid = id;newstitle = title; newsintro = intro;
     }
+
     NewsContentRequest(String id){
         newsid = id;
     }
+
     public String get_id(){return newsid;}
     public ArrayList _get(){
         ArrayList temp = new ArrayList();
